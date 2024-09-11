@@ -1,19 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import "./App.css";
 
-function App() {
-  const [city, setCity] = useState('');
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
-  const [weatherData, setWeatherData] = useState(null);
-  const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
+interface GeoData {
+  lat: number;
+  lon: number;
+  name: string;
+  country: string;
+  state?: string;
+}
 
-  const fetchWeather = async () => {
+interface WeatherData {
+  name: string;
+  weather: { description: string }[];
+  main: { temp: number };
+}
+
+function App() {
+  const [city, setCity] = useState<string>('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const apiKey: string = import.meta.env.VITE_WEATHER_API_KEY;
+
+  const fetchWeather = async (): Promise<void> => {
     if (!city) return;
-    const response = await fetch(
+    const response: Response = await fetch(
       `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`
     );
-    const data = await response.json();
+    const data: GeoData[] = await response.json();
     if (data.length > 0) {
       const { lat, lon } = data[0];
       setLatitude(lat);
@@ -22,19 +36,20 @@ function App() {
     }
   };
 
-  const fetchWeatherData = async (lat, lon) => {
-    const response = await fetch(
+  const fetchWeatherData = async (lat: number, lon: number): Promise<void> => {
+    const response: Response = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`
     );
-    const data = await response.json();
+    const data: WeatherData = await response.json();
     setWeatherData(data);
   };
 
-  useEffect(() => {
-    fetchWeather();
-  }, [city]);
+  // useEffect(() => {
+  //   fetchWeather();
+  // }, [city]);
+  //Removed this useEffect dependency on city 
 
-  const handleChange = (event) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
     setCity(event.target.value);
   };
 
